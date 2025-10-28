@@ -133,7 +133,7 @@
         // --- IMPORTANT ---
         // Once you deploy your backend to Render, paste its URL here.
         // It will look like: https://your-app-name.onrender.com/analyze
-        const RENDER_BACKEND_URL = 'YOUR_RENDER_APP_URL_HERE/analyze';
+        const RENDER_BACKEND_URL = 'https://dataana.onrender.com/analyze';
 
         // Get DOM elements
         const fileUpload = document.getElementById('fileUpload');
@@ -164,7 +164,7 @@
                 return;
             }
             if (RENDER_BACKEND_URL.includes('YOUR_RENDER_APP_URL_HERE')) {
-                showError('Please update the RENDER_BACKEND_URL in the HTML file.');
+                showError('Please update the RENDER_BACKEND_URL in the HTML file. This is the URL of your deployed Python backend on Render.');
                 return;
             }
 
@@ -184,8 +184,18 @@
 
                 // 5. Handle response
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Something went wrong on the server.');
+                    // *** EDITED SECTION ***
+                    // Try to parse error as JSON, but fall back to text if it's an HTML error
+                    let errorMsg = 'Something went wrong on the server.';
+                    try {
+                        const errorData = await response.json();
+                        errorMsg = errorData.error || JSON.stringify(errorData);
+                    } catch (e) {
+                        // If JSON.parse fails, it's likely an HTML error page from Render
+                        errorMsg = `Server error: ${response.status} ${response.statusText}. Check your Render backend logs.`;
+                    }
+                    throw new Error(errorMsg);
+                    // *** END EDITED SECTION ***
                 }
 
                 const data = await response.json();
@@ -368,3 +378,4 @@
     </script>
 </body>
 </html>
+
